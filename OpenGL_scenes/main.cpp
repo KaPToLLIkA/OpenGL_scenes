@@ -42,6 +42,7 @@ float rotateOffset = 0.8;
 float moveOffset = 0.16;
 bool isTexturingEnabled = true;
 bool isLightEnabled = true;
+bool isPointLightEnabled = true;
 
 // textures loading
 
@@ -103,11 +104,35 @@ void drawRect(float dx, float dy, float count) {
 
 void drawRoom() {
     glDisable(GL_TEXTURE_2D);
+
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new float [] { 0 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, new float [] { 0.8, 0.8, 0.8, 1.0 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, new float [] { 0, 0, 0, 1 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, new float [] { 0.2, 0.2, 0.2, 1.0 });
+
     glPushMatrix();
     glTranslatef(-3, 3, 3);
     glRotatef(90, 1, 0, 0);
     glColor3f(1, 0, 0);
     drawRect(12, 6, 0.5);
+
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new float [] { 16 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, new float [] { 0.0, 0.8, 0.0, 1 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, new float [] { 0.5, 0.5, 0.5, 1 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, new float [] { 0.4, 0.2, 0.4, 1 });
+
+    glTranslatef(6, -3, 0.5);
+    glutSolidCone(0.2, 0.6, 16, 16);
+
+    glTranslatef(0, 0, 0.5);
+    glutSolidSphere(0.2, 32, 32);
+
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, new float [] { 0 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, new float [] { 0.8, 0.8, 0.8, 1.0 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, new float [] { 0, 0, 0, 1 });
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, new float [] { 0.2, 0.2, 0.2, 1.0 });
+
+    glLightfv(GL_LIGHT1, GL_POSITION, new GLfloat[]{ 0, 0, 0.3, 1 });
     glPopMatrix();
 
     glEnable(GL_TEXTURE_2D);
@@ -735,6 +760,16 @@ void keyboardFunc(unsigned char key, int _x, int _y) {
     if (key == 'l' || key == 'L') {
         isLightEnabled = !isLightEnabled;
         if (isLightEnabled) {
+            glEnable(GL_LIGHT0);
+        }
+        else {
+            glDisable(GL_LIGHT0);
+        }
+    }
+
+    if (key == 'p' || key == 'P') {
+        isPointLightEnabled = !isPointLightEnabled;
+        if (isPointLightEnabled) {
             glEnable(GL_LIGHT1);
         }
         else {
@@ -775,18 +810,25 @@ void specialFunc(int key, int _x, int _y) {
 void setGlobalLight() {
     GLfloat* materialColor = new GLfloat[]{ 1, 1, 1, 1 };
 
-    // if lightPosition[3] == 1 => directional light
-    GLfloat* lightPosition = new GLfloat[]{ 0, 2.5, 0, 1 };
+    // if lightPosition[3] == 0 => directional light
+    GLfloat* lightPosition = new GLfloat[]{ 0, 2.5, 0, 0 };
 
     GLfloat* diffuseProperty = new GLfloat[]{ 1, 1, 1, 1 };
     GLfloat* specularProperty = new GLfloat[]{ 1, 1, 1, 1 };
     GLfloat* ambientProperty = new GLfloat[]{ 1, 1, 1, 1 };
 
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, materialColor);
-    glLightfv(GL_LIGHT1, GL_POSITION, lightPosition);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseProperty);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, specularProperty);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientProperty);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseProperty);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularProperty);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientProperty);
+
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, new GLfloat[]{ 1, 1, 1, 1 });
+    glLightfv(GL_LIGHT1, GL_SPECULAR, new GLfloat[]{ 1, 1, 1, 1 });
+    glLightfv(GL_LIGHT1, GL_AMBIENT, new GLfloat[]{ 1, 1, 1, 1 });
+    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0);
+    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.0014);
+    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.07);
 }
 
 void init() {
@@ -803,6 +845,7 @@ void init() {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_NORMALIZE);
     glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1);
+    glEnable(GL_LIGHT0);
     glEnable(GL_LIGHT1);
 
     setGlobalLight();
